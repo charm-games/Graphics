@@ -941,6 +941,31 @@ namespace UnityEngine.VFX.SDF
         }
 
 #if UNITY_EDITOR
+        // CHARM-GAMES @ MATT: expose public API for exporting SDF to Texture3D asset
+        public void SaveSDF(string path = "", bool oneChannel = true)
+        {
+            ComputeBuffer tmpBufferVoxel = new ComputeBuffer(m_dimX * m_dimY * m_dimZ, 4 * sizeof(float));
+
+            int kernelIdCopy = m_computeShader.FindKernel("CopyToBuffer");
+            m_computeShader.SetBuffer(kernelIdCopy, "voxelsBuffer", tmpBufferVoxel);
+            m_computeShader.SetTexture(kernelIdCopy, "voxels", m_DistanceTexture, 0);
+            m_computeShader.Dispatch(kernelIdCopy, Mathf.CeilToInt(m_dimX / 8.0f), Mathf.CeilToInt(m_dimY / 8.0f), Mathf.CeilToInt(m_dimZ / 8.0f));
+            Texture3D outTexture = new Texture3D(m_dimX, m_dimY, m_dimZ, oneChannel ? TextureFormat.RHalf : TextureFormat.RGBAHalf, false);
+            outTexture.filterMode = FilterMode.Bilinear;
+            outTexture.wrapMode = TextureWrapMode.Clamp;
+            Color[] voxelArray = outTexture.GetPixels(0);
+            tmpBufferVoxel.GetData(voxelArray);
+            outTexture.SetPixels(voxelArray, 0);
+            outTexture.Apply();
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(outTexture, path);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            tmpBufferVoxel.Release();
+        }
+
+#endif
+
+#if UNITY_EDITOR
         private string m_DefaultPath = "Assets/AllTests/VFXTests/SDFTests/";
         private void SaveWithComputeBuffer(RenderTexture tex, string assetName = "", bool oneChannel = true)
         {
