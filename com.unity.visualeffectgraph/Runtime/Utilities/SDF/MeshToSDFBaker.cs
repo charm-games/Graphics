@@ -44,6 +44,7 @@ namespace UnityEngine.VFX.SDF
         private int m_dimX, m_dimY, m_dimZ;
         private float m_MaxExtent;
         private float m_SdfOffset;
+        private float m_sparseVolumeThreshold;
         private int nTriangles;
         private Vector3 m_SizeBox, m_Center;
         private CommandBuffer m_Cmd;
@@ -183,7 +184,7 @@ namespace UnityEngine.VFX.SDF
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
         /// <param name="cmd">The CommandBuffer on which the baking process will be added.</param>
-        public MeshToSDFBaker(Vector3 sizeBox, Vector3 center, int maxRes, Mesh mesh, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, CommandBuffer cmd = null)
+        public MeshToSDFBaker(Vector3 sizeBox, Vector3 center, int maxRes, Mesh mesh, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, float sparseVolumeThreshold = 999f, CommandBuffer cmd = null)
         {
             m_SignPassesCount = signPassesCount;
             if (m_SignPassesCount >= 20)
@@ -198,6 +199,7 @@ namespace UnityEngine.VFX.SDF
             }
 
             m_SdfOffset = sdfOffset;
+            m_sparseVolumeThreshold = sparseVolumeThreshold;
             m_Center = center;
             m_SizeBox = sizeBox;
             m_Mesh = mesh;
@@ -222,7 +224,7 @@ namespace UnityEngine.VFX.SDF
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
         /// <param name="cmd">The CommandBuffer on which the baking process will be added.</param>
-        public MeshToSDFBaker(Vector3 sizeBox, Vector3 center, int maxRes, List<Mesh> meshes, List<Matrix4x4> transforms, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, CommandBuffer cmd = null)
+        public MeshToSDFBaker(Vector3 sizeBox, Vector3 center, int maxRes, List<Mesh> meshes, List<Matrix4x4> transforms, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, float sparseVolumeThreshold = 999f, CommandBuffer cmd = null)
         {
             m_RuntimeResources = VFXRuntimeResources.runtimeResources;
             if (m_RuntimeResources == null)
@@ -231,6 +233,7 @@ namespace UnityEngine.VFX.SDF
             }
             InitMeshFromList(meshes, transforms);
             m_SdfOffset = sdfOffset;
+            m_sparseVolumeThreshold = sparseVolumeThreshold;
             m_Center = center;
             m_SizeBox = sizeBox;
             m_maxResolution = maxRes;
@@ -265,7 +268,7 @@ namespace UnityEngine.VFX.SDF
         /// <param name="signPassesCount">The number of refinement passes on the sign of the SDF. This should stay below 20.</param>
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
-        public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, Mesh mesh, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f)
+        public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, Mesh mesh, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, float sparseVolumeThreshold = 999f)
         {
             m_Mesh = mesh;
             m_Center = center;
@@ -274,6 +277,7 @@ namespace UnityEngine.VFX.SDF
             m_SignPassesCount = signPassesCount;
             m_InOutThreshold = threshold;
             m_SdfOffset = sdfOffset;
+            m_sparseVolumeThreshold = sparseVolumeThreshold;
             Init();
         }
 
@@ -288,7 +292,7 @@ namespace UnityEngine.VFX.SDF
         /// <param name="signPassesCount">The number of refinement passes on the sign of the SDF. This should stay below 20.</param>
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
-        public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, List<Mesh> meshes, List<Matrix4x4> transforms, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f)
+        public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, List<Mesh> meshes, List<Matrix4x4> transforms, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, float sparseVolumeThreshold = 999f)
         {
             InitMeshFromList(meshes, transforms);
             m_Center = center;
@@ -297,6 +301,7 @@ namespace UnityEngine.VFX.SDF
             m_SignPassesCount = signPassesCount;
             m_InOutThreshold = threshold;
             m_SdfOffset = sdfOffset;
+            m_sparseVolumeThreshold = sparseVolumeThreshold;
             Init();
         }
 
@@ -884,6 +889,7 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.BeginSample("BakeSDF.DistanceTransform");
             m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.threshold, m_InOutThreshold);
             m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.sdfOffset, m_SdfOffset);
+            m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.sparseVolumeThreshold, m_sparseVolumeThreshold);
 
             m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.distanceTransform, ShaderProperties.voxelsTexture, GetTextureVoxelPrincipal(m_nStepsJFA + 1));
             m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.distanceTransform, ShaderProperties.distanceTexture, m_DistanceTexture);
@@ -942,7 +948,7 @@ namespace UnityEngine.VFX.SDF
 
 #if UNITY_EDITOR
         // CHARM-GAMES @ MATT: expose public API for exporting SDF to Texture3D asset
-        public void SaveSDF(string path = "", bool oneChannel = true)
+        public void SaveSDF(string path, bool oneChannel = true)
         {
             ComputeBuffer tmpBufferVoxel = new ComputeBuffer(m_dimX * m_dimY * m_dimZ, 4 * sizeof(float));
 
@@ -1111,6 +1117,7 @@ namespace UnityEngine.VFX.SDF
             //Distance
             internal static int distanceTexture = Shader.PropertyToID("distanceTexture");
             internal static int sdfOffset = Shader.PropertyToID("sdfOffset");
+            internal static int sparseVolumeThreshold = Shader.PropertyToID("sparseVolumeThreshold");
         }
 
         internal class Kernels
