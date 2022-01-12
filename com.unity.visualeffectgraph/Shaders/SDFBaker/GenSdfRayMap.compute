@@ -603,6 +603,7 @@ void SignPassNeighbors(uint3 id: SV_DispatchThreadID) {
 
 RWTexture3D<float> distanceTexture;
 float sdfOffset;
+float sparseVolumeThreshold;
 [numthreads(8, 8, 8)]
 void DistanceTransform(uint3 id: SV_DispatchThreadID) {
     if (id.x >= size.x || id.y >= size.y || id.z >= size.z)
@@ -626,7 +627,13 @@ void DistanceTransform(uint3 id: SV_DispatchThreadID) {
     {
         dist = length(seedCoord - voxelCoord);
     }
-    distanceTexture[id.xyz] = signD * dist - sdfOffset;
+    float offsetDist = signD * dist - sdfOffset;
+    if (offsetDist > sparseVolumeThreshold) {
+        offsetDist = 16;
+    } else if (offsetDist < -sparseVolumeThreshold) {
+        offsetDist = -16;
+    }
+    distanceTexture[id.xyz] = offsetDist;
 }
 
 RWStructuredBuffer<uint> counter;
