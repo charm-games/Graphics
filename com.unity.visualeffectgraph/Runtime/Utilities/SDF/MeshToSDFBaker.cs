@@ -184,6 +184,7 @@ namespace UnityEngine.VFX.SDF
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
         /// <param name="cmd">The CommandBuffer on which the baking process will be added.</param>
+// CHARM-GAMES @ MATT: add functionality for sparse volumes
         public MeshToSDFBaker(Vector3 sizeBox, Vector3 center, int maxRes, Mesh mesh, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, float sparseVolumeThreshold = 999f, CommandBuffer cmd = null)
         {
             m_SignPassesCount = signPassesCount;
@@ -199,6 +200,7 @@ namespace UnityEngine.VFX.SDF
             }
 
             m_SdfOffset = sdfOffset;
+// CHARM-GAMES @ MATT: add functionality for sparse volumes
             m_sparseVolumeThreshold = sparseVolumeThreshold;
             m_Center = center;
             m_SizeBox = sizeBox;
@@ -224,6 +226,7 @@ namespace UnityEngine.VFX.SDF
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
         /// <param name="cmd">The CommandBuffer on which the baking process will be added.</param>
+// CHARM-GAMES @ MATT: add functionality for sparse volumes
         public MeshToSDFBaker(Vector3 sizeBox, Vector3 center, int maxRes, List<Mesh> meshes, List<Matrix4x4> transforms, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, float sparseVolumeThreshold = 999f, CommandBuffer cmd = null)
         {
             m_RuntimeResources = VFXRuntimeResources.runtimeResources;
@@ -233,6 +236,7 @@ namespace UnityEngine.VFX.SDF
             }
             InitMeshFromList(meshes, transforms);
             m_SdfOffset = sdfOffset;
+// CHARM-GAMES @ MATT: add functionality for sparse volumes
             m_sparseVolumeThreshold = sparseVolumeThreshold;
             m_Center = center;
             m_SizeBox = sizeBox;
@@ -268,6 +272,8 @@ namespace UnityEngine.VFX.SDF
         /// <param name="signPassesCount">The number of refinement passes on the sign of the SDF. This should stay below 20.</param>
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
+
+// CHARM-GAMES @ MATT: add functionality for sparse volumes
         public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, Mesh mesh, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, float sparseVolumeThreshold = 999f)
         {
             m_Mesh = mesh;
@@ -277,6 +283,7 @@ namespace UnityEngine.VFX.SDF
             m_SignPassesCount = signPassesCount;
             m_InOutThreshold = threshold;
             m_SdfOffset = sdfOffset;
+// CHARM-GAMES @ MATT: add functionality for sparse volumes
             m_sparseVolumeThreshold = sparseVolumeThreshold;
             Init();
         }
@@ -292,6 +299,8 @@ namespace UnityEngine.VFX.SDF
         /// <param name="signPassesCount">The number of refinement passes on the sign of the SDF. This should stay below 20.</param>
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
+
+// CHARM-GAMES @ MATT: add functionality for sparse volumes
         public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, List<Mesh> meshes, List<Matrix4x4> transforms, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, float sparseVolumeThreshold = 999f)
         {
             InitMeshFromList(meshes, transforms);
@@ -301,6 +310,7 @@ namespace UnityEngine.VFX.SDF
             m_SignPassesCount = signPassesCount;
             m_InOutThreshold = threshold;
             m_SdfOffset = sdfOffset;
+// CHARM-GAMES @ MATT: add functionality for sparse volumes
             m_sparseVolumeThreshold = sparseVolumeThreshold;
             Init();
         }
@@ -889,6 +899,7 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.BeginSample("BakeSDF.DistanceTransform");
             m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.threshold, m_InOutThreshold);
             m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.sdfOffset, m_SdfOffset);
+// CHARM-GAMES @ MATT: add functionality for sparse volumes
             m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.sparseVolumeThreshold, m_sparseVolumeThreshold);
 
             m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.distanceTransform, ShaderProperties.voxelsTexture, GetTextureVoxelPrincipal(m_nStepsJFA + 1));
@@ -965,7 +976,7 @@ namespace UnityEngine.VFX.SDF
             outTexture.Apply();
             AssetDatabase.DeleteAsset(path);
             AssetDatabase.CreateAsset(outTexture, path);
-            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            // AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
             tmpBufferVoxel.Release();
         }
 
