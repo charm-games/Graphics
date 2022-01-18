@@ -601,6 +601,7 @@ void SignPassNeighbors(uint3 id: SV_DispatchThreadID) {
 
 RWTexture3D<float> distanceTexture;
 float sdfOffset;
+// CHARM-GAMES @ MATT: add param for sparse volumes
 float sparseVolumeThreshold;
 [numthreads(8, 8, 8)]
 void DistanceTransform(uint3 id: SV_DispatchThreadID) {
@@ -626,10 +627,11 @@ void DistanceTransform(uint3 id: SV_DispatchThreadID) {
         dist = length(seedCoord - voxelCoord);
     }
     float offsetDist = signD * dist - sdfOffset;
+    // CHARM-GAMES @ MATT: add functionality for sparse volumes
     if (offsetDist > sparseVolumeThreshold) {
-        offsetDist = 16;
+        offsetDist = 1;
     } else if (offsetDist < -sparseVolumeThreshold) {
-        offsetDist = -16;
+        offsetDist = -1;
     }
     distanceTexture[id.xyz] = offsetDist;
 }
