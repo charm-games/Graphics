@@ -90,8 +90,16 @@ namespace UnityEngine.VFX.SDF
                 }
             }
             m_Mesh = new Mesh();
+            m_Mesh.name = "SDFBakerMeshInternal";
             m_Mesh.indexFormat = IndexFormat.UInt32;
             m_Mesh.CombineMeshes(combine.ToArray());
+            // CHARM-GAMES @ MATT: for some reason assigning a mesh to a CombineInstance
+            // sometimes creates a copy of it, and these copies were not being cleaned up
+            foreach (CombineInstance instance in combine) {
+                if (string.IsNullOrEmpty(instance.mesh.name)) {
+                    Object.DestroyImmediate(instance.mesh);
+                }
+            }
         }
 
         private void InitCommandBuffer()
@@ -276,6 +284,8 @@ namespace UnityEngine.VFX.SDF
 // CHARM-GAMES @ MATT: add functionality for sparse volumes
         public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, Mesh mesh, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, float sparseVolumeThreshold = 999f)
         {
+// CHARM-GAMES @ MATT: m_Mesh was not being cleaned up on its own
+            Object.DestroyImmediate(m_Mesh);
             m_Mesh = mesh;
             m_Center = center;
             m_SizeBox = sizeBox;
@@ -303,6 +313,8 @@ namespace UnityEngine.VFX.SDF
 // CHARM-GAMES @ MATT: add functionality for sparse volumes
         public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, List<Mesh> meshes, List<Matrix4x4> transforms, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, float sparseVolumeThreshold = 999f)
         {
+// CHARM-GAMES @ MATT: m_Mesh was not being cleaned up on its own
+            Object.DestroyImmediate(m_Mesh);
             InitMeshFromList(meshes, transforms);
             m_Center = center;
             m_SizeBox = sizeBox;
