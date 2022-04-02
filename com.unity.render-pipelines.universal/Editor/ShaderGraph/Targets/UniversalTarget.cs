@@ -902,6 +902,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas.DOTSInstanced,
+                defines = new DefineCollection(),
+                keywords = new KeywordCollection(),
                 includes = CoreIncludes.MotionVectors,
             };
 
