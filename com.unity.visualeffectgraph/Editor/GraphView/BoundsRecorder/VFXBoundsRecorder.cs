@@ -309,8 +309,8 @@ namespace UnityEditor.VFX.UI
                         Bounds currentBounds = m_Effect.GetComputedBounds(systemName);
                         if (currentBounds.size == Vector3.zero)
                             continue;
-                        var padding = m_Effect.GetCurrentPadding(systemName);
-                        currentBounds.extents -= padding;
+                        //var padding = m_Effect.GetCurrentPadding(systemName);
+                        //currentBounds.extents -= padding;
                         if (m_FirstBound[systemName])
                         {
                             m_Bounds[systemName] = currentBounds;
@@ -375,9 +375,9 @@ namespace UnityEditor.VFX.UI
                     if ((selectedSystems.Contains(systemName) || renderAllRecordedBounds) &&
                         m_Bounds.ContainsKey(systemName) && NeedsToBeRecorded(system))
                     {
-                        var padding = m_Effect.GetCurrentPadding(systemName);
-                        var paddedBounds = new Bounds(m_Bounds[systemName].center, 2 * (m_Bounds[systemName].extents + padding));
-                        RenderBoundsSystem(paddedBounds);
+                        //var padding = m_Effect.GetCurrentPadding(systemName);
+                        //var paddedBounds = new Bounds(m_Bounds[systemName].center, 2 * (m_Bounds[systemName].extents + padding));
+                        //RenderBoundsSystem(paddedBounds);
                     }
                 }
             }
@@ -484,16 +484,16 @@ namespace UnityEditor.VFX.UI
                     }
                     var boundsSlot = initContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
                     // if (initContext.GetOutputSpaceFromSlot(boundsSlot) == VFXCoordinateSpace.Local) //TODO: Investigate why use space instead of GetOutputSpaceFromSlot
-                    var padding = m_Effect.GetCurrentPadding(systemName);
-                    var paddedBounds = new Bounds(m_Bounds[systemName].center, 2 * (m_Bounds[systemName].extents + padding));
-                    if (boundsSlot.space == VFXCoordinateSpace.Local)
-                        boundsSlot.value = new AABox() { center = paddedBounds.center, size = paddedBounds.size };
-                    else
-                    {
-                        //Subject to change depending on the future behavior of AABox w.r.t. to Spaceable
-                        var positionWorld = m_Effect.transform.TransformPoint(paddedBounds.center);
-                        boundsSlot.value = new AABox() { center = positionWorld, size = paddedBounds.size };
-                    }
+                    //var padding = m_Effect.GetCurrentPadding(systemName);
+                    //var paddedBounds = new Bounds(m_Bounds[systemName].center, 2 * (m_Bounds[systemName].extents + padding));
+                    //if (boundsSlot.space == VFXCoordinateSpace.Local)
+                    //    boundsSlot.value = new AABox() { center = paddedBounds.center, size = paddedBounds.size };
+                    //else
+                    //{
+                    //    //Subject to change depending on the future behavior of AABox w.r.t. to Spaceable
+                    //    var positionWorld = m_Effect.transform.TransformPoint(paddedBounds.center);
+                    //    boundsSlot.value = new AABox() { center = positionWorld, size = paddedBounds.size };
+                    //}
                 }
             }
         }
